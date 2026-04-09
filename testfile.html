@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>人物关系图</title>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+<style>
+    body {
+        font-family: Arial;
+        margin: 20px;
+    }
+    textarea {
+        width: 100%;
+        height: 200px;
+        font-size: 14px;
+        display: none;
+    }
+    button {
+        margin-top: 10px;
+        padding: 8px 16px;
+        font-size: 16px;
+    }
+    #output {
+        margin-top: 20px;
+        border: 1px solid #ccc;
+        padding: 20px;
+    }
+
+    /* 🔥 关系文字：黑色 + 加粗 + 去背景 */
+    .mermaid .edgeLabel {
+        background-color: transparent !important;
+    }
+    .mermaid .edgeLabel span {
+        color: #000 !important;
+        font-weight: bold;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>人物关系图</h2>
+
+<button onclick="unlock()">编辑关系（需要密码）</button>
+
+<br><br>
+
+<textarea id="input">
+醉知天在水 - 恋歌：师傅
+恋歌 - 李翊霆：师傅
+恋歌 - 畈町：师傅
+恋歌 - 阿廖尔：师傅
+恋歌 - 锒久：师傅
+恋歌 - 凑凑：师傅
+恋歌 - 柏韬茗：师傅
+
+阿廖尔 - 萨托利：师傅
+阿廖尔 - 虾仁：师傅
+阿廖尔 - 赤红莲：师傅
+阿廖尔 - 千野：师傅
+
+锒久 - 锦献泽：师傅
+凑凑 - 混亿把：师傅
+凑凑 - 水煮鱼：师傅
+
+锦献泽 - 春以彤：师傅
+锦献泽 - 笑渐清：师傅
+
+水煮鱼 - 青衣鱼：师傅
+水煮鱼 - 如虞：师傅
+
+阿廖尔 - 赤红莲：侠缘
+锒久 - 锦献泽：侠缘
+</textarea>
+
+<br>
+<button id="generateBtn" onclick="generate()" style="display:none;">更新关系图</button>
+
+<div id="output"></div>
+
+<script>
+mermaid.initialize({ startOnLoad: false });
+
+const PASSWORD = "123456";
+
+window.onload = function() {
+    generate();
+};
+
+function unlock() {
+    let inputPwd = prompt("请输入密码：");
+
+    if (inputPwd === PASSWORD) {
+        alert("密码正确，可以编辑");
+        document.getElementById("input").style.display = "block";
+        document.getElementById("generateBtn").style.display = "inline-block";
+    } else {
+        alert("密码错误！");
+    }
+}
+
+function generate() {
+    const input = document.getElementById("input").value.trim();
+    const lines = input.split("\n");
+
+    let nodes = new Set();
+    let edges = "";
+    let styleLines = "";
+    let edgeIndex = 0;
+
+    lines.forEach(line => {
+        if (!line.trim()) return;
+
+        let parts = line.split("：");
+        if (parts.length !== 2) return;
+
+        let relation = parts[1].trim();
+        let people = parts[0].split("-");
+
+        if (people.length !== 2) return;
+
+        let a = people[0].trim();
+        let b = people[1].trim();
+
+        nodes.add(a);
+        nodes.add(b);
+
+        if (relation === "侠缘") {
+            edges += `${a} -.->|侠缘| ${b}\n`;
+            // 🔴 设置红色线
+            styleLines += `linkStyle ${edgeIndex} stroke:red,stroke-width:2px;\n`;
+        } else {
+            edges += `${a} -->|${relation}| ${b}\n`;
+        }
+
+        edgeIndex++;
+    });
+
+    let nodeStr = "";
+    nodes.forEach(n => {
+        nodeStr += `${n}[${n}]\n`;
+    });
+
+    let graph = `
+graph TD
+${nodeStr}
+${edges}
+${styleLines}
+`;
+
+    document.getElementById("output").innerHTML =
+        `<div class="mermaid">${graph}</div>`;
+
+    mermaid.init(undefined, document.querySelectorAll(".mermaid"));
+}
+</script>
+
+</body>
+</html>
